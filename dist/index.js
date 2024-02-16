@@ -43,16 +43,15 @@ function goWhatsApp(key) {
         sock === null || sock === void 0 ? void 0 : sock.ev.on('connection.update', (update) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
             const { connection, lastDisconnect, qr } = update;
+            const shuldReconnect = ((_b = (_a = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _a === void 0 ? void 0 : _a.output) === null || _b === void 0 ? void 0 : _b.statusCode) === baileys_1.DisconnectReason.loggedOut.toString();
             if (qr) {
                 console.log(qr);
             }
-            ;
-            //@ts-ignore
-            if (connection === 'close' && ((_a = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _a === void 0 ? void 0 : _a.output.statusCode) === baileys_1.DisconnectReason.loggedOut) {
+            else if (connection === 'close' && shuldReconnect) {
                 const keyRandom = Math.floor(Math.random() * 10);
                 goWhatsApp(keyRandom);
-            } //@ts-ignore
-            else if (connection === 'close' && ((_b = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _b === void 0 ? void 0 : _b.output.statusCode) !== baileys_1.DisconnectReason.loggedOut) {
+            }
+            else if (connection === 'close' && !shuldReconnect) {
                 goWhatsApp(key);
             }
             else if (connection === 'open') {

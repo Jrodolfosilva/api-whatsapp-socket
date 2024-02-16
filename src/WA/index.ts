@@ -1,10 +1,9 @@
 import makeWASocket,{DisconnectReason, useMultiFileAuthState} from '@whiskeysockets/baileys'
-
-
+import { stringify } from 'querystring';
 
 async function goWhatsApp (key:number) {
     
-
+    
     const {saveCreds,state} = await useMultiFileAuthState(`./db_auth/${key}`)
     const sock =  makeWASocket({
         printQRInTerminal: true,
@@ -14,18 +13,15 @@ async function goWhatsApp (key:number) {
     sock?.ev.on('connection.update', async(update)=>{
         
         const {connection,lastDisconnect,qr}= update;
-        
+        const shuldReconnect = lastDisconnect?.error?.output?.statusCode === DisconnectReason.loggedOut.toString()
         if(qr){
             console.log(qr)
-        };
-
-       
-        //@ts-ignore
-        if(connection === 'close' && lastDisconnect?.error?.output.statusCode === DisconnectReason.loggedOut){
+            
+        }else if(connection === 'close' && shuldReconnect ){
             const keyRandom = Math.floor(Math.random()*10)
             goWhatsApp(keyRandom) 
-        }//@ts-ignore
-        else if(connection === 'close' && lastDisconnect?.error?.output.statusCode !== DisconnectReason.loggedOut){
+        }
+        else if(connection === 'close' && !shuldReconnect){
             goWhatsApp(key)
         }
         else if(connection === 'open') {
@@ -46,6 +42,7 @@ async function goWhatsApp (key:number) {
 
         if(notify && !fromMe && typeof(remoteJid) === 'string'){
             await sock?.sendMessage(remoteJid,{text:"Olá, tudo bem?"})
+
         }
     })
 
@@ -56,3 +53,4 @@ async function goWhatsApp (key:number) {
 }
 
 goWhatsApp(4515)
+
